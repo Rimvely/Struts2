@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="board">
+
+<typeAlias alias="boardDTO" type="com.board.BoardDTO"/>
+
+<select id="maxBoardNum" resultClass="Integer">
+	select nvl(max(boardNum),0) from bbs
+</select>
+
+<insert id="insertData" parameterClass="boardDTO">
+	insert into bbs (boardNum, name, pwd, email, subject, content,
+	ipAddr, groupNum, depth, orderNo, parent, hitCount, created) values (
+	#boardNum#, #name#, #pwd#, #email#, #subject#, #content#,
+	#ipAddr#, #groupNum#, #depth#, #orderNo#, #parent#, 0, sysdate)
+</insert>	
+
+<!-- Map인 이유는 searchKey, searchValue 를 해야하기 때문에 -->
+<select id="dataCount" resultClass="Integer" parameterClass="map">
+	select nvl(count(*),0) from bbs
+	where $searchKey$ like '%' || #searchValue# || '%'
+</select>
+
+<select id="listData" resultClass="boardDTO" parameterClass="map">
+	select * from (
+	select rownum runum, data.* from (
+	select boardNum, name, subject, depth, hitCount, 
+	to_char(created, "YYYY-MM-DD") created from bbs
+	where $searchKey$ like '%' || #searchValue# || '%'
+	order by groupNum desc, orderNo asc) data)
+<![CDATA[	
+	where rnum >= #start and rnum <=#end#
+]]>
+</select>
+
+
+
+
+
+
+</sqlMap>
